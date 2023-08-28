@@ -26,7 +26,7 @@ from
     `employees`.`dept_emp`
 group by
     `employees`.`dept_emp`.`emp_no`;
- ---------------   
+ --
 select
     `employees`.`l`.`emp_no` AS `emp_no`,
     `d`.`dept_no` AS `dept_no`,
@@ -108,5 +108,135 @@ WHERE
     AND d.dept_name NOT IN ('Development', 'Finance')
 LIMIT
     10;
+
+--
+SELECT
+    e.emp_no,
+    CONCAT(e.first_name, ' ', e.last_name) AS full_name,
+    d.dept_name AS department,
+    CASE
+        cte.title
+        WHEN 'Staff' THEN 'Member'
+        WHEN 'Senior Staff' THEN 'Senior Member'
+        ELSE cte.title
+    END as title,
+    e.birth_date,
+    e.hire_date,
+    TIMESTAMPDIFF(YEAR, e.birth_date, e.hire_date) AS age
+FROM
+    current_dept_emp AS cde
+    JOIN employees AS e ON cde.emp_no = e.emp_no
+    JOIN departments AS d ON cde.dept_no = d.dept_no
+    JOIN current_title_emp AS cte ON cte.emp_no = e.emp_no
+WHERE
+    cde.to_date <> '9999-01-01'
+    AND d.dept_name NOT IN ('Development', 'Finance')
+LIMIT
+    10;
+
+SELECT CURRENT_DATE;
+
+SELECT CURRENT_USER;
+
+-- having
+-- находим сотрудников которые работали в более чем одном департаменте
+SELECT
+	de.emp_no,
+	COUNT(*) AS count
+FROM
+	dept_emp AS de
+GROUP BY
+	de.emp_no
+HAVING
+	count > 1;
+
+-- сотрудники с суммой выплат больше миллиона
+SELECT
+    s.emp_no,
+    SUM(s.salary) AS total_salary
+FROM
+    salaries AS s
+GROUP BY
+    s.emp_no
+HAVING
+    total_salary > 1000000
+ORDER BY
+    total_salary DESC;
+    
+-- 
+-- 
+SELECT
+    l.emp_no,
+    d.dept_no,
+    l.from_date,
+    l.to_date
+FROM
+    dept_emp AS d
+    JOIN dept_emp_latest_date AS l ON d.emp_no = l.emp_no
+    AND d.from_date = l.from_date
+    AND l.to_date = d.to_date;
+-- используем сабквери (sub-query) вместо вью (view)
+SELECT
+    l.emp_no,
+    d.dept_no,
+    l.from_date,
+    l.to_date
+FROM
+    dept_emp AS d
+    JOIN (
+        SELECT
+            emp_no,
+            MAX(from_date) AS from_date,
+            MAX(to_date) AS to_date
+        FROM
+            dept_emp
+        GROUP BY
+            emp_no
+    ) AS l ON d.emp_no = l.emp_no
+    AND d.from_date = l.from_date
+    AND l.to_date = d.to_date;
+-- with
+WITH dept_latest AS (
+    SELECT
+        emp_no,
+        MAX(from_date) AS from_date,
+        MAX(to_date) AS to_date
+    FROM
+        dept_emp
+    GROUP BY
+        emp_no
+)
+SELECT
+    l.emp_no,
+    d.dept_no,
+    l.from_date,
+    l.to_date
+FROM
+    dept_emp AS d
+    JOIN dept_latest AS l ON d.emp_no = l.emp_no
+    AND d.from_date = l.from_date
+    AND l.to_date = d.to_date;
+--
+CREATE
+OR REPLACE VIEW current_title_emp AS WITH title_latest_day AS (
+    SELECT
+        t.emp_no,
+        MAX(t.from_date) AS from_date,
+        MAX(t.to_date) AS to_date
+    FROM
+        titles AS t
+    GROUP BY
+        t.emp_no
+)
+SELECT
+    t.emp_no,
+    t.title,
+    t.from_date AS from_date,
+    t.to_date AS to_date
+FROM
+    title_latest_day AS tld
+    JOIN titles AS t ON t.emp_no = tld.emp_no
+    AND t.from_date = tld.from_date
+    AND t.to_date = tld.to_date;
 
 
