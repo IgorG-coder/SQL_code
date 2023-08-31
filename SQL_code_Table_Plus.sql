@@ -54,14 +54,12 @@ FROM
     JOIN dept_emp_latest_date ON dept_emp.emp_no = dept_emp_latest_date.emp_no
     AND dept_emp.from_date = dept_emp_latest_date.from_date
     AND dept_emp_latest_date.to_date = dept_emp.to_date;
-    
-  --
-    
-    SELECT
-    l.emp_no ,
-    d.dept_no ,
-    l.from_date ,
-    l.to_date 
+--
+SELECT
+    l.emp_no,
+    d.dept_no,
+    l.from_date,
+    l.to_date
 FROM
     dept_emp AS d
     JOIN dept_emp_latest_date AS l ON d.emp_no = l.emp_no
@@ -91,24 +89,6 @@ JOIN departments AS d ON cde.dept_no = d.dept_no WHERE cde.to_date <>'9999-01-01
 --
 SELECT *, CONCAT(e.first_name, ' ', e.last_name) AS full_name FROM current_dept_emp AS cde JOIN employees AS e ON cde.emp_no = e.emp_no 
 JOIN departments AS d ON cde.dept_no = d.dept_no WHERE cde.to_date <>'9999-01-01' AND d.dept_name NOT IN ('Development', 'Finance') LIMIT 10;
---
-SELECT
-    e.emp_no,
-    CONCAT(e.first_name, ' ', e.last_name) AS full_name,
-    d.dept_name,
-    e.birth_date,
-    e.hire_date,
-    TIMESTAMPDIFF(YEAR, e.birth_date, e.hire_date) AS age
-FROM
-    current_dept_emp AS cde
-    JOIN employees AS e ON cde.emp_no = e.emp_no
-    JOIN departments AS d ON cde.dept_no = d.dept_no
-WHERE
-    cde.to_date <> '9999-01-01'
-    AND d.dept_name NOT IN ('Development', 'Finance')
-LIMIT
-    10;
-
 --
 SELECT
     e.emp_no,
@@ -238,5 +218,46 @@ FROM
     JOIN titles AS t ON t.emp_no = tld.emp_no
     AND t.from_date = tld.from_date
     AND t.to_date = tld.to_date;
+    
+-- columns emp_no, full_name, deparment, title, gender, birthdate
 
-
+SELECT
+    e.emp_no,
+    CONCAT(e.first_name, ' ', e.last_name) AS full_name,
+    d.dept_name AS department,
+    cte.title,
+    e.birth_date,
+    e.gender
+FROM
+    employees e
+    JOIN current_title_emp cte ON cte.emp_no = e.emp_no
+    JOIN current_dept_emp cde ON cde.emp_no = e.emp_no
+    JOIN departments d ON cde.dept_no = d.dept_no
+WHERE e.first_name LIKE '%za%' OR e.last_name LIKE '%%'
+LIMIT
+    100;
+--
+SELECT
+    *
+FROM
+    employees e
+    JOIN current_dept_emp cde ON e.emp_no = cde.emp_no
+LIMIT
+    10;
+--
+SELECT
+    cde.emp_no AS id,
+    d.dept_name AS Departament,
+    cde.from_date,
+    cde.to_date,
+    e.first_name,
+    e.last_name,
+    CONCAT(e.first_name, ' ', e.last_name) AS full_nam
+FROM
+    current_dept_emp cde
+    JOIN departments d ON cde.dept_no = d.dept_no
+    JOIN employees e ON cde.emp_no = e.emp_no
+WHERE
+    e.last_name LIKE '%kova'
+LIMIT
+    10;
